@@ -1,0 +1,11 @@
+langchain
+langchain-openai
+langchain-core
+langgraph
+langgraph-prebuilt
+azure-ai-projects
+azure-identity
+python-dotenv
+openai
+ipykernel
+nest-asyncio

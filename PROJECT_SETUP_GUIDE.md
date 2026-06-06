@@ -157,6 +157,90 @@ Open in VS Code → select **"AI Agents"** kernel → start coding.
 
 ---
 
+## 🔧 Troubleshooting — Kernel Not Working
+
+This is one of the most common issues in Codespaces. Here's what's happening and how to fix it.
+
+### Why does this happen?
+
+When you create a virtual environment (`.venv`) and register a Jupyter kernel, the kernel needs to **point to the Python inside your `.venv`**. If it points to the wrong Python (e.g. system Python), your installed packages won't be found — even though you installed them correctly.
+
+Think of it like this:
+```
+.venv/bin/python  ← has all your packages installed  ✅
+/usr/bin/python   ← system Python, knows nothing about your packages  ❌
+```
+
+The kernel must use `.venv/bin/python` — otherwise imports will fail.
+
+### How to verify the kernel is pointing to the right Python
+
+```bash
+# Check where the kernel is pointing
+cat /home/codespace/.local/share/jupyter/kernels/ai-agents/kernel.json
+```
+
+It should show your `.venv` path:
+```json
+{
+  "argv": ["/workspaces/<your-repo>/.venv/bin/python", "-m", "ipykernel_launcher", "-f", "{connection_file}"],
+  "display_name": "AI Agents",
+  "language": "python"
+}
+```
+
+If it shows `/usr/bin/python` or any path **outside** your `.venv` — that's the problem.
+
+### Fix — Reinstall kernel correctly
+
+```bash
+# Step 1 — Remove the broken kernel
+jupyter kernelspec remove ai-agents -f
+
+# Step 2 — Make sure venv is active
+source .venv/bin/activate
+
+# Step 3 — Reinstall using venv Python explicitly
+.venv/bin/python -m ipykernel install --user --name=ai-agents --display-name "AI Agents"
+
+# Step 4 — Verify it now points to venv
+cat /home/codespace/.local/share/jupyter/kernels/ai-agents/kernel.json
+```
+
+### Step 5 — Reload VS Code
+
+```
+Ctrl + Shift + P → type "Reload Window" → Enter
+```
+
+### Step 6 — Select kernel in notebook
+
+- Open your `.ipynb` file
+- Top right corner → click kernel selector
+- Click **"Select Another Kernel"**
+- Click **"Jupyter Kernel"**
+- Select **"AI Agents"**
+
+### Key rule to remember
+
+> ⚠️ Always use `.venv/bin/python -m ipykernel install ...` instead of just `python -m ipykernel install ...`
+> This guarantees the kernel points to your venv Python, not whatever `python` resolves to in the shell.
+
+### Check kernels available
+
+```bash
+jupyter kernelspec list
+```
+
+Expected output:
+```
+Available kernels:
+  ai-agents    /home/codespace/.local/share/jupyter/kernels/ai-agents  ✅
+  python3      /workspaces/<repo>/.venv/share/jupyter/kernels/python3
+```
+
+---
+
 ## Step 11 — Daily Git Flow (While Working)
 ```bash
 # Stage changes
